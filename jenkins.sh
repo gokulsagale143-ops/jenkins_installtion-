@@ -1,42 +1,78 @@
 #!/bin/bash
 
-# Exit immediately if a command fails
+# Exit script if any command fails
 set -e
 
-echo "Updating system packages..."
-sudo apt update
+echo "==============================="
+echo " Updating Ubuntu Packages"
+echo "==============================="
+sudo apt update -y
 
-echo "Installing Java..."
-sudo apt install -y fontconfig openjdk-21-jre
+echo "==============================="
+echo " Installing Required Packages"
+echo "==============================="
+sudo apt install -y fontconfig openjdk-21-jre curl wget gnupg
 
-echo "Checking Java version..."
+echo "==============================="
+echo " Checking Java Version"
+echo "==============================="
 java -version
 
-echo "Creating keyrings directory..."
+echo "==============================="
+echo " Creating Jenkins Keyring Directory"
+echo "==============================="
 sudo mkdir -p /etc/apt/keyrings
 
-echo "Adding Jenkins repository key..."
-sudo wget -O /etc/apt/keyrings/jenkins-keyring.asc \
-  https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+echo "==============================="
+echo " Removing Old Jenkins Key (if exists)"
+echo "==============================="
+sudo rm -f /etc/apt/keyrings/jenkins-keyring.asc
 
-echo "Adding Jenkins repository..."
+echo "==============================="
+echo " Downloading Correct Jenkins GPG Key"
+echo "==============================="
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | \
+sudo tee /etc/apt/keyrings/jenkins-keyring.asc > /dev/null
+
+echo "==============================="
+echo " Adding Jenkins Repository"
+echo "==============================="
 echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] \
 https://pkg.jenkins.io/debian-stable binary/" | \
 sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
 
-echo "Updating package list..."
-sudo apt update
+echo "==============================="
+echo " Updating Package Repository"
+echo "==============================="
+sudo apt update -y
 
-echo "Installing Jenkins..."
+echo "==============================="
+echo " Installing Jenkins"
+echo "==============================="
 sudo apt install -y jenkins
 
-echo "Enabling Jenkins service..."
+echo "==============================="
+echo " Enabling Jenkins Service"
+echo "==============================="
 sudo systemctl enable jenkins
 
-echo "Starting Jenkins service..."
+echo "==============================="
+echo " Starting Jenkins Service"
+echo "==============================="
 sudo systemctl start jenkins
 
-echo "Checking Jenkins status..."
+echo "==============================="
+echo " Jenkins Service Status"
+echo "==============================="
 sudo systemctl status jenkins --no-pager
 
-echo "Jenkins installation completed successfully!"
+echo "==============================="
+echo " Jenkins Initial Admin Password"
+echo "==============================="
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+echo "==============================="
+echo " Jenkins Installed Successfully!"
+echo " Open Browser:"
+echo " http://localhost:8080"
+echo "==============================="
