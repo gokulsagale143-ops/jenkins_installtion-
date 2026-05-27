@@ -1,78 +1,83 @@
 #!/bin/bash
 
-# Exit script if any command fails
 set -e
 
-echo "==============================="
-echo " Updating Ubuntu Packages"
-echo "==============================="
-sudo apt update -y
+echo "=================================="
+echo " Removing Old Jenkins Repository"
+echo "=================================="
 
-echo "==============================="
+sudo rm -f /etc/apt/sources.list.d/jenkins.list
+sudo rm -f /etc/apt/keyrings/jenkins-keyring.asc
+sudo rm -f /usr/share/keyrings/jenkins-keyring.asc
+
+echo "=================================="
+echo " Cleaning Old APT Cache"
+echo "=================================="
+
+sudo apt clean
+sudo rm -rf /var/lib/apt/lists/*
+sudo apt update
+
+echo "=================================="
 echo " Installing Required Packages"
-echo "==============================="
-sudo apt install -y fontconfig openjdk-21-jre curl wget gnupg
+echo "=================================="
 
-echo "==============================="
-echo " Checking Java Version"
-echo "==============================="
-java -version
+sudo apt install -y curl gnupg2 ca-certificates lsb-release ubuntu-keyring fontconfig openjdk-21-jre
 
-echo "==============================="
-echo " Creating Jenkins Keyring Directory"
-echo "==============================="
+echo "=================================="
+echo " Creating Keyrings Directory"
+echo "=================================="
+
 sudo mkdir -p /etc/apt/keyrings
 
-echo "==============================="
-echo " Removing Old Jenkins Key (if exists)"
-echo "==============================="
-sudo rm -f /etc/apt/keyrings/jenkins-keyring.asc
+echo "=================================="
+echo " Downloading NEW Jenkins GPG Key"
+echo "=================================="
 
-echo "==============================="
-echo " Downloading Correct Jenkins GPG Key"
-echo "==============================="
 curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | \
+gpg --dearmor | \
 sudo tee /etc/apt/keyrings/jenkins-keyring.asc > /dev/null
 
-echo "==============================="
+echo "=================================="
 echo " Adding Jenkins Repository"
-echo "==============================="
-echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] \
-https://pkg.jenkins.io/debian-stable binary/" | \
+echo "=================================="
+
+echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | \
 sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
 
-echo "==============================="
-echo " Updating Package Repository"
-echo "==============================="
-sudo apt update -y
+echo "=================================="
+echo " Updating Package List"
+echo "=================================="
 
-echo "==============================="
+sudo apt update
+
+echo "=================================="
 echo " Installing Jenkins"
-echo "==============================="
+echo "=================================="
+
 sudo apt install -y jenkins
 
-echo "==============================="
-echo " Enabling Jenkins Service"
-echo "==============================="
-sudo systemctl enable jenkins
+echo "=================================="
+echo " Starting Jenkins"
+echo "=================================="
 
-echo "==============================="
-echo " Starting Jenkins Service"
-echo "==============================="
+sudo systemctl enable jenkins
 sudo systemctl start jenkins
 
-echo "==============================="
-echo " Jenkins Service Status"
-echo "==============================="
+echo "=================================="
+echo " Jenkins Status"
+echo "=================================="
+
 sudo systemctl status jenkins --no-pager
 
-echo "==============================="
-echo " Jenkins Initial Admin Password"
-echo "==============================="
+echo "=================================="
+echo " Jenkins Initial Password"
+echo "=================================="
+
 sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 
-echo "==============================="
-echo " Jenkins Installed Successfully!"
+echo "=================================="
+echo " Jenkins Installed Successfully"
 echo " Open Browser:"
 echo " http://localhost:8080"
-echo "==============================="
+echo "=================================="
